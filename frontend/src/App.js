@@ -12,6 +12,7 @@ const App = () => {
   });
   const [search, setSearch] = useState('');
   const [editForm, setEditForm] = useState(null);
+  const [invoiceItems, setInvoiceItems] = useState([]);
 
   const fetchProducts = () => {
     fetch(`http://localhost:5000/products?search=${search}`)
@@ -68,6 +69,27 @@ const App = () => {
     setEditForm(null);
   };
 
+  const addToInvoice = (product) => {
+    const existing = invoiceItems.find(i => i._id === product._id);
+    if (existing) {
+      setInvoiceItems(invoiceItems.map(i => i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i));
+    } else {
+      setInvoiceItems([...invoiceItems, { ...product, quantity: 1 }]);
+    }
+  };
+
+  const generateInvoice = async () => {
+    const res = await fetch('http://localhost:5000/invoice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: invoiceItems }),
+    });
+    const result = await res.json();
+    alert('Invoice generated with total: ₹' + result.total);
+    setInvoiceItems([]);
+    fetchProducts();
+  };
+
   return (
     <div className="container">
       <h1>Inventory Management</h1>
@@ -107,13 +129,29 @@ const App = () => {
                 <p><strong>{product.description}</strong> (Part #{product.partNumber})</p>
                 <p>Original: ₹{product.originalPrice} | With GST: ₹{product.priceWithGST}</p>
                 <p>Stock: {product.stock}</p>
-                <button onClick={() => handleEdit(product)}>Edit</button>
-                <button onClick={() => handleDelete(product._id)}>Remove</button>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  <button onClick={() => handleEdit(product)}>Edit</button>
+                  <button onClick={() => handleDelete(product._id)}>Remove</button>
+                  <button onClick={() => addToInvoice(product)}>Add to Invoice</button>
+                </div>
               </>
             )}
           </li>
         ))}
       </ul>
+
+      {invoiceItems.length > 0 && (
+        <div className="invoice">
+          <h2>Invoice</h2>
+          <ul>
+            {invoiceItems.map(item => (
+              <li key={item._id}>{item.description} x {item.quantity} = ₹{item.quantity * item.priceWithGST}</li>
+            ))}
+          </ul>
+          <p><strong>Total: ₹{invoiceItems.reduce((sum, item) => sum + item.quantity * item.priceWithGST, 0)}</strong></p>
+          <button onClick={generateInvoice}>Generate & Print</button>
+        </div>
+      )}
     </div>
   );
 };
