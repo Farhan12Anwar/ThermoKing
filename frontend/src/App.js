@@ -169,10 +169,17 @@ const App = () => {
 
   const addToInvoice = (product) => {
     const existing = invoiceItems.find((i) => i._id === product._id);
+    const totalQty = existing ? existing.quantity + 1 : 1;
+    if (product.stock < totalQty) {
+      alert(
+        `Cannot add more than available stock (${product.stock}) for ${product.description}`
+      );
+      return;
+    }
     if (existing) {
       setInvoiceItems(
         invoiceItems.map((i) =>
-          i._id === product._id ? { ...i, quantity: i.quantity + 1 } : i
+          i._id === product._id ? { ...i, quantity: totalQty } : i
         )
       );
     } else {
