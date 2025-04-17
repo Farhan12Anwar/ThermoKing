@@ -13,11 +13,12 @@ h1 {
   color: #333;
 }
 
+
 .search-bar {
   width: 100%;
   padding: 0.5rem;
   margin-bottom: 1rem;
-  border: 1px solid #ccc;
+  border: 2px solid #000000;
   border-radius: 5px;
 }
 
@@ -153,11 +154,7 @@ button:hover {
   overflow-y: auto;
 }
 
-.search-bar {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-}
+
 
 .form input {
   width: 100%;
