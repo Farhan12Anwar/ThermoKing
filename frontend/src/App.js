@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
 const PrintableInvoice = React.forwardRef(
-  ({ items, customer, invoiceNumber }, ref) => {
+  ({ items, customer, invoiceNumber, paymentType, setPaymentType, amountPaid, setAmountPaid }, ref) => {
+
     const total = items.reduce(
       (sum, item) => sum + item.priceWithGST * item.quantity,
       0
@@ -16,6 +17,7 @@ const PrintableInvoice = React.forwardRef(
       border: "1px solid #000",
       padding: "10px",
     };
+
 
     return (
       <div
@@ -69,6 +71,11 @@ const PrintableInvoice = React.forwardRef(
             <strong>Invoice Date:</strong> {date}
             <br />
             <strong>Invoice Type:</strong> Tax Invoice
+            <p><strong>Payment Type:</strong> {paymentType}</p>
+{paymentType === "Partial" && (
+  <p><strong>Amount Paid:</strong> ₹{amountPaid}</p>
+)}
+
           </div>
         </div>
 
@@ -91,6 +98,57 @@ const PrintableInvoice = React.forwardRef(
           <br />
           <strong>Place of Supply:</strong> {customer.placeOfSupply}
         </div>
+        <div style={{ marginTop: "1rem" }}>
+  <h4 style={{ marginBottom: "0.5rem" }}>Select Payment Type:</h4>
+  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+    {["cash", "credit", "partial"].map((type) => (
+      <label
+        key={type}
+        style={{
+          padding: "0.75rem 1rem",
+          border: paymentType === type ? "2px solid #007bff" : "1px solid #ccc",
+          borderRadius: "8px",
+          cursor: "pointer",
+          minWidth: "100px",
+          textAlign: "center",
+          backgroundColor: paymentType === type ? "#e6f0ff" : "#f9f9f9",
+          transition: "all 0.3s",
+        }}
+      >
+        <input
+          type="radio"
+          name="paymentType"
+          value={type}
+          checked={paymentType === type}
+          onChange={(e) => setPaymentType(e.target.value)}
+          style={{ display: "none" }}
+        />
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </label>
+    ))}
+  </div>
+
+  {paymentType === "partial" && (
+    <div style={{ marginTop: "1rem" }}>
+      <label style={{ display: "block", marginBottom: "0.5rem" }}>
+        Amount Paid:
+      </label>
+      <input
+        type="number"
+        value={amountPaid}
+        onChange={(e) => setAmountPaid(e.target.value)}
+        style={{
+          padding: "0.5rem",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          width: "200px",
+        }}
+        placeholder="Enter amount paid"
+      />
+    </div>
+  )}
+</div>
+
 
         <table
           style={{
@@ -184,6 +242,7 @@ const PrintableInvoice = React.forwardRef(
             <strong>Authorized Signatory</strong>
           </p>
         </div>
+        
       </div>
     );
   }
@@ -204,7 +263,9 @@ const App = () => {
   const printRef = useRef();
 
   const [invoiceNumber, setInvoiceNumber] = useState("");
-
+  const [paymentType, setPaymentType] = useState("");
+  const [amountPaid, setAmountPaid] = useState("");
+  
   const [customerDetails, setCustomerDetails] = useState({
     name: "",
     address: "",
@@ -346,6 +407,10 @@ const App = () => {
   };
 
   const generateInvoice = () => {
+    if (!printRef.current) {
+      alert("Invoice content not available to print.");
+      return;
+    }
     const printContents = printRef.current.innerHTML;
     const newWindow = window.open("", "", "width=800,height=900");
 
@@ -375,6 +440,21 @@ const App = () => {
   };
 
   const done = async () => {
+
+    console.log("Sending Invoice Data:", {
+      items: invoiceItems,
+      invoiceNumber,
+      customer,
+      paymentType,
+      amountPaid: paymentType === "partial" ? amountPaid : null,
+    });
+
+    
+    if (!paymentType) {
+      alert("Please select a payment type before saving.");
+      return;
+    }
+    
     try {
       const response = await fetch("http://localhost:5000/invoice", {
         method: "POST",
@@ -383,7 +463,10 @@ const App = () => {
           items: invoiceItems,
           invoiceNumber,
           customer,
+          paymentType,
+          amountPaid: paymentType === "partial" ? amountPaid : null,
         }),
+        
       });
 
       if (!response.ok) {
@@ -415,8 +498,13 @@ const App = () => {
   const [searchInvoiceNumber, setSearchInvoiceNumber] = useState("");
   const [searchedInvoice, setSearchedInvoice] = useState(null);
 
+
+const [editablePaymentType, setEditablePaymentType] = useState("");
+const [editableAmountPaid, setEditableAmountPaid] = useState("");
+
   const handleSearch = async () => {
     if (!searchInvoiceNumber) return alert("Please enter an invoice number");
+
 
     try {
       const response = await fetch(
@@ -454,6 +542,31 @@ const App = () => {
 
   const totalPages = Math.ceil(products.length / productsPerPage);
 
+
+  const handleUpdatePayment = async () => {
+    if (!searchedInvoice) return;
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/invoices/${searchedInvoice._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          paymentType: editablePaymentType,
+          amountPaid: editablePaymentType === "partial" ? editableAmountPaid : null,
+        }),
+      });
+  
+      const updated = await response.json();
+      alert("Payment info updated!");
+      setSearchedInvoice(updated);
+    } catch (err) {
+      console.error("Error updating payment type:", err);
+      alert("Failed to update payment details.");
+    }
+  };
+  
   return (
     <div>
       <div className="container">
@@ -513,16 +626,27 @@ const App = () => {
 
           {invoiceItems.length > 0 && (
             <div style={{ marginTop: "2rem" }}>
-              <PrintableInvoice
-                ref={printRef}
-                items={invoiceItems}
-                customer={customer}
-                invoiceNumber={invoiceNumber}
-              />
+            <PrintableInvoice
+  ref={printRef}
+  items={invoiceItems}
+  customer={customer}
+  invoiceNumber={invoiceNumber}
+  paymentType={paymentType}
+  setPaymentType={setPaymentType}
+  amountPaid={amountPaid}
+  setAmountPaid={setAmountPaid}
+/>
+
 
               <div style={{ display: "flex", gap: "1rem", marginTop: "1rem" }}>
                 <button onClick={generateInvoice}>Generate & Print</button>
-                <button onClick={done}>Done</button>
+                <button
+  onClick={done}
+  disabled={!paymentType}
+>
+  Done
+</button>
+
               </div>
             </div>
           )}
@@ -640,6 +764,74 @@ const App = () => {
         </button>
 
         {searchedInvoice && (
+
+          <>
+          
+          <div style={{ marginTop: "2rem" }}>
+  <h4 style={{ marginBottom: "0.5rem" }}>Payment Details</h4>
+  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+    {["cash", "credit", "partial"].map((type) => (
+      <label
+        key={type}
+        style={{
+          padding: "0.75rem 1rem",
+          border: editablePaymentType === type ? "2px solid #007bff" : "1px solid #ccc",
+          borderRadius: "8px",
+          cursor: "pointer",
+          minWidth: "100px",
+          textAlign: "center",
+          backgroundColor: editablePaymentType === type ? "#e6f0ff" : "#f9f9f9",
+        }}
+      >
+        <input
+          type="radio"
+          name="editPaymentType"
+          value={type}
+          checked={editablePaymentType === type}
+          onChange={(e) => setEditablePaymentType(e.target.value)}
+          style={{ display: "none" }}
+        />
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </label>
+    ))}
+  </div>
+
+  {editablePaymentType === "partial" && (
+    <div style={{ marginTop: "1rem" }}>
+      <label style={{ display: "block", marginBottom: "0.5rem" }}>
+        Amount Paid:
+      </label>
+      <input
+        type="number"
+        value={editableAmountPaid}
+        onChange={(e) => setEditableAmountPaid(e.target.value)}
+        style={{
+          padding: "0.5rem",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          width: "200px",
+        }}
+        placeholder="Enter amount paid"
+      />
+    </div>
+  )}
+
+  <button
+    onClick={() => handleUpdatePayment()}
+    style={{
+      marginTop: "1rem",
+      padding: "8px 16px",
+      backgroundColor: "#007bff",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: "pointer",
+    }}
+  >
+    Save Payment Changes
+  </button>
+</div>
+
           <div
             style={{
               border: "1px solid #333",
@@ -713,6 +905,86 @@ const App = () => {
               <strong>Place of Supply:</strong>{" "}
               {searchedInvoice.customer.placeOfSupply}
             </div>
+
+            <div style={{ marginTop: "2rem" }}>
+  <h4 style={{ marginBottom: "0.5rem" }}>Payment Details</h4>
+  <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap" }}>
+    {["cash", "credit", "partial"].map((type) => (
+      <label
+        key={type}
+        style={{
+          padding: "0.75rem 1rem",
+          border: editablePaymentType === type ? "2px solid #007bff" : "1px solid #ccc",
+          borderRadius: "8px",
+          cursor: "pointer",
+          minWidth: "100px",
+          textAlign: "center",
+          backgroundColor: editablePaymentType === type ? "#e6f0ff" : "#f9f9f9",
+        }}
+      >
+        <input
+          type="radio"
+          name="editPaymentType"
+          value={type}
+          checked={editablePaymentType === type}
+          onChange={(e) => setEditablePaymentType(e.target.value)}
+          style={{ display: "none" }}
+        />
+        {type.charAt(0).toUpperCase() + type.slice(1)}
+      </label>
+    ))}
+  </div>
+
+  {editablePaymentType === "partial" && (
+    <div style={{ marginTop: "1rem" }}>
+      <label style={{ display: "block", marginBottom: "0.5rem" }}>
+        Amount Paid:
+      </label>
+      <input
+        type="number"
+        value={editableAmountPaid}
+        onChange={(e) => setEditableAmountPaid(e.target.value)}
+        style={{
+          padding: "0.5rem",
+          borderRadius: "6px",
+          border: "1px solid #ccc",
+          width: "200px",
+        }}
+        placeholder="Enter amount paid"
+      />
+    </div>
+  )}
+
+  <button
+    onClick={() => handleUpdatePayment()}
+    style={{
+      marginTop: "1rem",
+      padding: "8px 16px",
+      backgroundColor: "#007bff",
+      color: "#fff",
+      border: "none",
+      borderRadius: "6px",
+      cursor: "pointer",
+    }}
+  >
+    Save Payment Changes
+  </button>
+
+  {/* Below section to display payment info */}
+  {searchedInvoice && (
+    <div style={{ marginTop: "2rem", borderTop: "1px solid #ccc", paddingTop: "1rem" }}>
+      <p>
+        <strong>Amount Paid:</strong> ₹{searchedInvoice.amountPaid.toFixed(2)}
+      </p>
+      <p>
+        <strong>Due Amount:</strong>{" "}
+        {searchedInvoice.dueAmount > 0
+          ? `₹${searchedInvoice.dueAmount.toFixed(2)}`
+          : "No Due Amount"}
+      </p>
+    </div>
+  )}
+</div>
 
             <table
               style={{
@@ -817,6 +1089,7 @@ const App = () => {
               </p>
             </div>
           </div>
+        </>
         )}
       </div>
     </div>

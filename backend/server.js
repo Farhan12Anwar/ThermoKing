@@ -54,10 +54,10 @@ const path = require("path");
 
 // server.js
 
-app.post('/invoice', async (req, res) => {
-  const { items, invoiceNumber, customer } = req.body;
+app.post("/invoice", async (req, res) => {
+  const { items, invoiceNumber, customer, paymentType, amountPaid = 0 } = req.body;
 
-  if (!items || !invoiceNumber || !customer) {
+  if (!items || !invoiceNumber || !customer || !paymentType) {
     return res.status(400).json({ error: "Missing invoice data" });
   }
 
@@ -65,7 +65,9 @@ app.post('/invoice', async (req, res) => {
   for (let item of items) {
     const product = await Product.findById(item._id);
     if (!product || product.stock < item.quantity) {
-      return res.status(400).json({ error: `Not enough stock for ${product?.description || "unknown item"}` });
+      return res.status(400).json({
+        error: `Not enough stock for ${product?.description || "unknown item"}`,
+      });
     }
 
     product.stock -= item.quantity;
@@ -79,14 +81,40 @@ app.post('/invoice', async (req, res) => {
     date: new Date(),
     invoiceNumber,
     customer,
+    paymentType,
+    amountPaid,
   });
 
   await invoice.save();
-  res.json(invoice);
+
+  // Calculate due amount for response
+  const dueAmount =
+    paymentType === "partial" ? total - amountPaid : paymentType === "credit" ? total : 0;
+
+  res.json({
+    ...invoice.toObject(),
+    dueAmount: dueAmount > 0 ? dueAmount : undefined,
+  });
 });
 
+
+app.put("/invoice/:invoiceNumber", async (req, res) => {
+  const updated = await Invoice.findOneAndUpdate(
+    { invoiceNumber: req.params.invoiceNumber },
+    req.body,
+    { new: true }
+  );
+
+  if (!updated) {
+    return res.status(404).json({ error: "Invoice not found" });
+  }
+
+  res.json(updated);
+});
+
+
 // Fetch a specific invoice by invoice number
-app.get('/invoice/:invoiceNumber', async (req, res) => {
+app.get("/invoice/:invoiceNumber", async (req, res) => {
   const { invoiceNumber } = req.params;
   const invoice = await Invoice.findOne({ invoiceNumber });
 
@@ -94,8 +122,15 @@ app.get('/invoice/:invoiceNumber', async (req, res) => {
     return res.status(404).json({ error: "Invoice not found" });
   }
 
-  res.json(invoice);
+  // Calculate dueAmount
+  const dueAmount = invoice.total - invoice.amountPaid;
+
+  res.json({
+    ...invoice.toObject(),
+    dueAmount,
+  });
 });
+
 
 
 app.listen(5000, () => console.log("Server started on port 5000"));
