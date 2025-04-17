@@ -63,3 +63,58 @@ button:hover {
 .product-item p {
   margin: 0.3rem 0;
 }
+
+/* General print adjustments */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin: 0;
+    padding: 0;
+  }
+
+  .print-invoice {
+    margin: 0 auto;
+    padding: 1.5cm;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: none;
+    font-size: 12pt;
+    color: #000;
+  }
+
+  .print-invoice h3,
+  .print-invoice p,
+  .print-invoice strong {
+    color: #000;
+  }
+
+  .invoice-table {
+    page-break-inside: auto;
+  }
+
+  .invoice-table thead {
+    display: table-header-group;
+  }
+
+  .invoice-table tfoot {
+    display: table-footer-group;
+  }
+
+  .invoice-table th,
+  .invoice-table td {
+    border: 1px solid #000 !important;
+  }
+
+  .total {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Hide anything non-essential */
+  .no-print,
+  .no-print * {
+    display: none !important;
+  }
+}
