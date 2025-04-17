@@ -1,5 +1,5 @@
 .container {
-  max-width: 600px;
+  /* max-width: 600px; */
   margin: 2rem auto;
   padding: 1rem;
   font-family: Arial, sans-serif;
@@ -24,9 +24,26 @@ h1 {
 .form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 1rem;
 }
+
+.input-group {
+  margin-bottom: 15px;
+}
+
+.input-group label {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 16px;
+}
+
 
 input {
   padding: 0.5rem;
@@ -117,4 +134,57 @@ button:hover {
   .no-print * {
     display: none !important;
   }
+}
+
+.container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+.left-side {
+  width: 45%;
+  padding-right: 20px;
+}
+
+.right-side {
+  margin-top: 60px;
+  width: 50%;
+  overflow-y: auto;
+}
+
+.search-bar {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+}
+
+.form input {
+  width: 100%;
+  padding: 8px;
+  margin: 10px 0;
+}
+
+.form button {
+  padding: 8px 16px;
+  margin: 10px 0;
+}
+
+.product-list {
+  list-style: none;
+  padding: 0;
+}
+
+.product-item {
+  margin-bottom: 15px;
+}
+
+.product-item button {
+  padding: 5px 10px;
+  margin-top: 5px;
+  cursor: pointer;
+}
+
+.right-side {
+  margin-left: 20px;
 }

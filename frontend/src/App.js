@@ -1,32 +1,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
-
-
 const PrintableInvoice = React.forwardRef(({ items, customer }, ref) => {
-
-
+  const [invoiceNumber, setInvoiceNumber] = useState(null); // State to hold the invoice number
   const total = items.reduce(
     (sum, item) => sum + item.priceWithGST * item.quantity,
     0
   );
   const date = new Date().toLocaleDateString();
-  
 
-  const thStyle = {
-    border: "1px solid #000",
-    padding: "10px 8px",
-    backgroundColor: "#f0f0f0",
-    textAlign: "left",
-    fontWeight: "bold",
+  // Function to generate a sequential invoice number
+  const generateInvoiceNumber = () => {
+    const prefix = "MH"; // Company Code
+    const currentYear = new Date().getFullYear(); // Current Year
+    const currentMonth = (new Date().getMonth() + 1)
+      .toString()
+      .padStart(2, "0"); // Current Month (2-digit)
+    const sequentialNumber = Math.floor(Math.random() * 100000); // Random sequential number for demonstration (replace with actual logic for sequential generation)
+
+    return `${prefix}-${currentYear}-${currentMonth}-${sequentialNumber}`;
   };
 
-  const tdStyle = {
-    border: "1px solid #000",
-    padding: "8px",
-    textAlign: "left",
-    verticalAlign: "top",
-  };
+  // Generate invoice number only once after the first product is added
+  useEffect(() => {
+    if (items.length > 0 && !invoiceNumber) {
+      setInvoiceNumber(generateInvoiceNumber()); // Set the invoice number when the first item is added
+    }
+  }, [items, invoiceNumber]); // Run only when items change and invoiceNumber is not set yet
 
   return (
     <div
@@ -58,7 +58,8 @@ const PrintableInvoice = React.forwardRef(({ items, customer }, ref) => {
         }}
       >
         <div>
-          <img src="/logo192.png" alt="Company Logo" width="100" />
+        <img src="/TKK.png" alt="Company Logo" width="300" style={{ marginLeft: "-60px" }} />
+
         </div>
         <div style={{ textAlign: "right", lineHeight: "1.6" }}>
           <strong style={{ fontSize: "14px" }}>
@@ -69,11 +70,10 @@ const PrintableInvoice = React.forwardRef(({ items, customer }, ref) => {
           <br />
           Ponneri Taluk Thiruvallur, TN, CHENNAI, INDIA
           <br />
-          <strong>Invoice No.:</strong> MH-SO-2526100074
+          <strong>Invoice No.:</strong> {invoiceNumber || "Loading..."}{" "}
+          {/* Show loading text until invoice number is set */}
           <br />
           <strong>Invoice Date:</strong> {date}
-          <br />
-          <strong>Place of Supply:</strong> Tamil Nadu, India
           <br />
           <strong>Invoice Type:</strong> Tax Invoice
         </div>
@@ -191,7 +191,7 @@ const PrintableInvoice = React.forwardRef(({ items, customer }, ref) => {
                 {index + 1}
               </td>
               <td style={{ border: "1px solid #000", padding: "8px" }}>
-                {item.partNumber} / {item.hsnCode}
+                {item.partNumber} {item.hsnCode}
               </td>
               <td style={{ border: "1px solid #000", padding: "8px" }}>
                 {item.description}
@@ -425,109 +425,120 @@ const App = () => {
 
   return (
     <div className="container">
-      <h1>Inventory Management</h1>
-      <input
-        type="text"
-        placeholder="Search by part number or description"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="search-bar"
-      />
-      <form onSubmit={handleSubmit} className="form">
-        {["partNumber", "description", "originalPrice", "gst", "stock"].map(
-          (field) => (
-            <input
-              key={field}
-              name={field}
-              value={form[field]}
-              onChange={handleChange}
-              placeholder={field}
-              required
+      <div className="left-side">
+        <h1>Inventory Management</h1>
+        <input
+          type="text"
+          placeholder="Search by part number or description"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="search-bar"
+        />
+        <form onSubmit={handleSubmit} className="form">
+          {["partNumber", "description", "originalPrice", "gst", "stock"].map(
+            (field) => (
+              <input
+                key={field}
+                name={field}
+                value={form[field]}
+                onChange={handleChange}
+                placeholder={field}
+                required
+              />
+            )
+          )}
+          <button type="submit">Add Product</button>
+        </form>
+
+        <form onSubmit={handleCustomerSubmit} className="form">
+          <h3>Customer Details</h3>
+          {["name", "address", "pan", "gstin", "placeOfSupply"].map((field) => (
+            <div key={field} className="input-group">
+              <label htmlFor={field}>{field}</label>
+              <input
+                id={field}
+                name={field}
+                value={customer[field]}
+                onChange={handleCustomerChange}
+                required
+              />
+            </div>
+          ))}
+          <button type="submit">Save Customer Details</button>
+        </form>
+      </div>
+
+      <div className="right-side">
+        <ul className="product-list">
+          {products.map((product) => (
+            <li key={product._id} className="product-item">
+              {editForm && editForm._id === product._id ? (
+                <form onSubmit={handleEditSubmit} className="form">
+                  {[
+                    "partNumber",
+                    "description",
+                    "originalPrice",
+                    "gst",
+                    "stock",
+                  ].map((field) => (
+                    <input
+                      key={field}
+                      name={field}
+                      value={editForm[field]}
+                      onChange={handleEditChange}
+                      required
+                    />
+                  ))}
+                  <button type="submit">Save</button>
+                  <button type="button" onClick={() => setEditForm(null)}>
+                    Cancel
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <p>
+                    <strong>{product.description}</strong> (Part #
+                    {product.partNumber})
+                  </p>
+                  <p>
+                    Original: ₹{product.originalPrice} | With GST: ₹
+                    {(
+                      product.originalPrice *
+                      (1 + Number(product.gst) / 100)
+                    ).toFixed(2)}
+                  </p>
+                  <p>GST: {product.gst}%</p>
+                  <p>Stock: {product.stock}</p>
+                  <div
+                    style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}
+                  >
+                    <button onClick={() => handleEdit(product)}>Edit</button>
+                    <button onClick={() => handleDelete(product._id)}>
+                      Remove
+                    </button>
+                    <button onClick={() => addToInvoice(product)}>
+                      Add to Invoice
+                    </button>
+                  </div>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {invoiceItems.length > 0 && (
+          <div style={{ marginTop: "2rem" }}>
+            <PrintableInvoice
+              ref={printRef}
+              items={invoiceItems}
+              customer={customer}
             />
-          )
+            <button onClick={generateInvoice} style={{ marginTop: "1rem" }}>
+              Generate & Print
+            </button>
+          </div>
         )}
-        <button type="submit">Add Product</button>
-      </form>
-
-      <form onSubmit={handleCustomerSubmit} className="form">
-        <h3>Customer Details</h3>
-        {["name", "address", "pan", "gstin", "placeOfSupply"].map((field) => (
-          <input
-            key={field}
-            name={field}
-            value={customer[field]}
-            onChange={handleCustomerChange}
-            placeholder={field}
-            required
-          />
-        ))}
-        <button type="submit">Save Customer Details</button>
-      </form>
-
-      <ul className="product-list">
-        {products.map((product) => (
-          <li key={product._id} className="product-item">
-            {editForm && editForm._id === product._id ? (
-              <form onSubmit={handleEditSubmit} className="form">
-                {[
-                  "partNumber",
-                  "description",
-                  "originalPrice",
-                  "gst",
-                  "stock",
-                ].map((field) => (
-                  <input
-                    key={field}
-                    name={field}
-                    value={editForm[field]}
-                    onChange={handleEditChange}
-                    required
-                  />
-                ))}
-                <button type="submit">Save</button>
-                <button type="button" onClick={() => setEditForm(null)}>
-                  Cancel
-                </button>
-              </form>
-            ) : (
-              <>
-                <p>
-                  <strong>{product.description}</strong> (Part #
-                  {product.partNumber})
-                </p>
-                <p>
-                  Original: ₹{product.originalPrice} | With GST: ₹
-                  {(
-                    product.originalPrice *
-                    (1 + Number(product.gst) / 100)
-                  ).toFixed(2)}
-                </p>
-                <p>GST: {product.gst}%</p>
-                <p>Stock: {product.stock}</p>
-                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                  <button onClick={() => handleEdit(product)}>Edit</button>
-                  <button onClick={() => handleDelete(product._id)}>
-                    Remove
-                  </button>
-                  <button onClick={() => addToInvoice(product)}>
-                    Add to Invoice
-                  </button>
-                </div>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
-
-      {invoiceItems.length > 0 && (
-        <div style={{ marginTop: "2rem" }}>
-         <PrintableInvoice ref={printRef} items={invoiceItems} customer={customer} />
-
-          <button onClick={generateInvoice} style={{ marginTop: "1rem" }}>
-            Generate & Print
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   );
 };
