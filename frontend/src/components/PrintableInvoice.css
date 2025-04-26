@@ -1,0 +1,179 @@
+.invoice-container {
+  border: 1px solid #333;
+  padding: 2rem;
+  margin: 2rem auto;
+  max-width: 1400px;
+  width: 100%;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  color: #000;
+  background-color: #fff;
+}
+
+.invoice-title {
+  text-align: center;
+  margin-bottom: 0.5rem;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.gstin-info {
+  text-align: center;
+  margin-top: 0;
+  font-size: 12px;
+}
+
+.header-section {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 1rem;
+}
+
+.company-logo img {
+  margin-left: -60px;
+}
+
+.company-info {
+  text-align: right;
+  line-height: 1.6;
+}
+
+.company-name {
+  font-size: 14px;
+}
+
+.customer-details {
+  margin-top: 2rem;
+  border-bottom: 1px solid #ccc;
+  padding-bottom: 1rem;
+}
+
+.payment-type-section {
+  margin-top: 1rem;
+}
+
+.payment-options {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.payment-option {
+  padding: 0.75rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  min-width: 100px;
+  text-align: center;
+  background-color: #f9f9f9;
+  transition: all 0.3s;
+}
+
+.payment-option.selected {
+  border: 2px solid #007bff;
+  background-color: #e6f0ff;
+}
+
+.amount-paid-input {
+  margin-top: 1rem;
+}
+
+.amount-paid-input input {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  width: 200px;
+}
+
+.items-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 2rem;
+  border: 1px solid #000;
+}
+
+.items-table th, 
+.items-table td {
+  border: 1px solid #000;
+  padding: 10px;
+}
+
+.total-section {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.total-values {
+  border-top: 1px solid #000;
+  padding-top: 0.5rem;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+.authorized-signatory {
+  margin-top: 2rem;
+  text-align: center;
+  font-size: 12px;
+}
+
+/* Print Styles */
+@media print {
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: #fff !important;
+  }
+
+  .invoice-container {
+    margin: 0;
+    padding: 1cm;
+    box-shadow: none;
+    width: 100%;
+    page-break-inside: avoid;
+  }
+
+  .payment-type-section,
+  .amount-paid-input,
+  .payment-options {
+    display: none !important; /* Hide interactive elements in print */
+  }
+
+  .items-table th {
+    background-color: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .items-table th,
+  .items-table td {
+    font-size: 12px;
+    padding: 8px !important; /* Ensure padding is consistent in print */
+  }
+
+  .authorized-signatory {
+    margin-top: 3rem;
+    font-size: 12px;
+    text-align: right;
+  }
+
+
+  /* Prevent any unwanted breaks and ensure consistency */
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+
+  /* Ensure the logo doesn't break into new lines */
+  .company-logo img {
+    width: 100%;
+    max-width: 300px;
+    height: auto;
+    margin: 0;
+  }
+
+  .company-info {
+    font-size: 12px;
+  }
+}
