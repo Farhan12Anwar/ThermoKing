@@ -139,62 +139,44 @@
 }
 
 /* Print Styles */
+/* Print Styles */
 @media print {
-  body {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-    background-color: #fff !important;
+  .header-and-customer {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+    border: none;
   }
 
-  
-
-  .invoice-container {
-    margin: 0;
-    padding: 1cm;
-    box-shadow: none;
-    width: 100%;
-    page-break-inside: avoid;
+  .header-section {
+    flex: 2;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
   }
 
-  .payment-type-section,
-  .amount-paid-input,
-  .payment-options {
-    display: none !important; /* Hide interactive elements in print */
-  }
-
-  .items-table th {
-    background-color: #f0f0f0 !important;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .items-table th,
-  .items-table td {
-    font-size: 12px;
-    padding: 8px !important; /* Ensure padding is consistent in print */
-  }
-
-  .authorized-signatory {
-    margin-top: 3rem;
-    font-size: 12px;
-    text-align: right;
-  }
-
-
-  /* Prevent any unwanted breaks and ensure consistency */
-  @page {
-    size: A4;
-    margin: 1cm;
-  }
-
-  /* Ensure the logo doesn't break into new lines */
   .company-logo img {
-    width: 100%;
-    max-width: 300px;
-    height: auto;
-    margin: 0;
+    max-width: 150px !important;
+    height: auto !important;
   }
 
   .company-info {
+    padding-left: 1rem;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+  }
+
+  .vertical-divider {
+    width: 1px;
+    background-color: black;
+    margin: 0 15px;
+  }
+
+  .customer-details {
+    flex: 2;
+    padding: 0 10px;
     font-size: 12px;
   }
 }
+

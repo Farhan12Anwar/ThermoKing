@@ -37,12 +37,127 @@ const PrintableInvoice = React.forwardRef(
     console.log(grandTotal, "grand total");
     return (
       <div className="invoice-container" ref={ref}>
+        <style>
+          {`
+    @media print {
+  .header-and-customer {
+    display: flex;
+    flex-direction: row;
+    margin-top: 10px;
+    border: none;
+    justify-content: center;
+  }
+
+  .invoice-title {
+    text-align: center;
+    margin-bottom: 0.5rem;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.gstin-info {
+    text-align: center;
+    margin-top: 0;
+    font-size: 12px;
+}
+
+.invoice-number {
+    text-align: center;
+    font-size: 14px;
+    margin-top: 0.5rem;
+}
+
+  .header-section {
+    flex: 2;
+    display: flex;
+    align-items: center;
+  }
+
+  .company-logo img {
+    max-width: 150px !important;
+    height: auto !important;
+  }
+
+  .company-info {
+    line-height: 1.4;
+     text-align: right;
+     padding-left:130px;
+  }
+
+  .vertical-divider {
+    width: 1px;
+    background-color: black;
+    height: auto;
+    margin: 0 15px;
+  }
+
+  .customer-details {
+    flex: 2;
+    display: flex;
+    flex-direction: row; /* Change to row instead of column */
+    border: 1px solid black;
+    font-size: 12px;
+  }
+
+  .total-values {
+  text-align: right;
+    border-top: 1px solid black;
+    padding-top: 0.5rem;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+  .customer-left,
+  .customer-right {
+    width: 48%;
+    padding : 10px;
+  }
+
+  .customer-left {
+    padding-right: 10px;
+    border-right: 1px solid black;
+  }
+
+  .customer-right {
+    padding-left: 10px;
+    margin-left: auto; /* This pushes it to the right */
+  }
+
+  .customer-left p,
+  .customer-right p {
+    margin: 4px 0;
+  }
+
+  .total-section {
+    margin-top: 1.5rem;
+    display: flex
+;
+    justify-content: flex-end;
+}
+
+  .horizontal-divider {
+    width: 100%;
+    height: 1px;
+    background-color: black;
+    margin: 10px 0;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    margin: 0;
+  }
+}
+
+  `}
+        </style>
+
         <h2 className="invoice-title">TAX INVOICE</h2>
         <p className="gstin-info">
           GSTIN: <strong>36cispm5742f1zu</strong>
         </p>
         <p className="invoice-number">
-        <strong>Invoice No.:</strong> {invoiceNumber || "Loading..."}
+          <strong>Invoice No.:</strong> {invoiceNumber || "Loading..."}
         </p>
         <div className="header-section">
           <div className="company-logo">
@@ -77,30 +192,31 @@ const PrintableInvoice = React.forwardRef(
         </div>
 
         <div className="customer-details">
-  <div className="customer-left">
-    <strong>Customer Details:</strong>
-    <br />
-    <strong>Name:</strong> {customer.name}
-    <br />
-    <strong>Address:</strong> {customer.address}
-    <br />
-    <strong>PAN:</strong> {customer.pan}
-    <br />
-    <strong>GSTIN:</strong> {customer.gstin}
-    <br />
-    <strong>Place of Supply:</strong> {customer.placeOfSupply}
-  </div>
+          <div className="customer-left">
+            <strong>Customer Details:</strong>
+            <br />
+            <strong>Name:</strong> {customer.name}
+            <br />
+            <strong>Address:</strong> {customer.address}
+            <br />
+            <strong>PAN:</strong> {customer.pan}
+            <br />
+            <strong>GSTIN:</strong> {customer.gstin}
+            <br />
+            <strong>Place of Supply:</strong> {customer.placeOfSupply}
+          </div>
 
-  <div className="vertical-line"></div>
+          <div className="vertical-line"></div>
 
-  <div className="customer-right">
-    <strong>Vehicle Registration No.:</strong> {customer?.vehicleRegistrationNo}
-    <br />
-    <strong>Unit Model:</strong> {customer?.unitModel}
-    <br />
-    <strong>Hour Meter:</strong> {customer?.hourMeter}
-  </div>
-</div>
+          <div className="customer-right">
+            <strong>Vehicle Registration No.:</strong>{" "}
+            {customer?.vehicleRegistrationNo}
+            <br />
+            <strong>Unit Model:</strong> {customer?.unitModel}
+            <br />
+            <strong>Hour Meter:</strong> {customer?.hourMeter}
+          </div>
+        </div>
 
         {/* Payment Type Section */}
         <div className="payment-type-section">
@@ -189,8 +305,6 @@ const PrintableInvoice = React.forwardRef(
         </table>
 
         {/* Service Charges Section */}
-        {/* Service Charges Section */}
-        {/* Service Charges Section */}
         {serviceCharges.length > 0 && (
           <div className="service-charge-section">
             <h4>Service Charges:</h4>
@@ -235,7 +349,6 @@ const PrintableInvoice = React.forwardRef(
             </p>
           </div>
         </div>
-
       </div>
     );
   }

@@ -198,37 +198,38 @@ const App = () => {
       alert("Invoice content not available to print.");
       return;
     }
-
+  
     const printWindow = window.open("", "_blank", "width=800,height=900");
-
+  
     printWindow.document.write(`
-    <html>
-      <head>
-        <title>Invoice</title>
-        <link rel="stylesheet" type="text/css" href="${window.location.origin}/App.css">
-        <style>
-          @media print {
-            body {
-              -webkit-print-color-adjust: exact;
-              print-color-adjust: exact;
+      <html>
+        <head>
+          <title>Invoice</title>
+          <link rel="stylesheet" type="text/css" href="${window.location.origin}/App.css">
+          <style>
+            @media print {
+              body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+              }
             }
-          }
-        </style>
-      </head>
-      <body>
-        ${printRef.current.outerHTML}
-        <script>
-          window.onload = function() {
-            window.print();
-            window.onafterprint = function() { window.close(); };
-          };
-        </script>
-      </body>
-    </html>
-  `);
-
+          </style>
+        </head>
+        <body>
+          ${printRef.current.outerHTML}
+          <script>
+            window.onload = function() {
+              window.print();
+              window.onafterprint = function() { window.close(); };
+            };
+          </script>
+        </body>
+      </html>
+    `);
+  
     printWindow.document.close();
   };
+  
 
   const done = async () => {
     console.log("Sending Invoice Data:", {
