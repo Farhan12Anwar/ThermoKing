@@ -141,12 +141,17 @@ const PrintableInvoice = React.forwardRef(
     background-color: black;
     margin: 10px 0;
   }
+    th {
+          width:100%;
+    }
 
-  body {
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-    margin: 0;
-  }
+body {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  margin: 0;
+  font-family: 'Times New Roman', Times, serif;
+}
+
 }
 
   `}
