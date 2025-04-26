@@ -23,6 +23,12 @@
   font-size: 12px;
 }
 
+.invoice-number {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 0.5rem;
+}
+
 .header-section {
   display: flex;
   justify-content: space-between;
@@ -45,9 +51,22 @@
 }
 
 .customer-details {
-  margin-top: 2rem;
-  border-bottom: 1px solid #ccc;
-  padding-bottom: 1rem;
+  display: flex;
+  margin-top: 20px;
+  border: 1px solid #000;
+  /* padding: 15px; */
+}
+
+.customer-left,
+.customer-right {
+  width: 48%;
+  padding: 10px;
+}
+
+.vertical-line {
+  width: 1px;
+  background-color: black;
+  margin: 0 10px;
 }
 
 .payment-type-section {
@@ -126,6 +145,8 @@
     print-color-adjust: exact !important;
     background-color: #fff !important;
   }
+
+  
 
   .invoice-container {
     margin: 0;

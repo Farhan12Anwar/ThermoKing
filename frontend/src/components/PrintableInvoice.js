@@ -41,7 +41,9 @@ const PrintableInvoice = React.forwardRef(
         <p className="gstin-info">
           GSTIN: <strong>36cispm5742f1zu</strong>
         </p>
-
+        <p className="invoice-number">
+        <strong>Invoice No.:</strong> {invoiceNumber || "Loading..."}
+        </p>
         <div className="header-section">
           <div className="company-logo">
             <img
@@ -60,8 +62,6 @@ const PrintableInvoice = React.forwardRef(
             <br />
             Hyderabad, Medchal, Malkajgiri District, Telangana - 500043
             <br />
-            <strong>Invoice No.:</strong> {invoiceNumber || "Loading..."}
-            <br />
             <strong>Invoice Date:</strong> {date}
             <br />
             <strong>Invoice Type:</strong> Tax Invoice
@@ -77,24 +77,30 @@ const PrintableInvoice = React.forwardRef(
         </div>
 
         <div className="customer-details">
-          <strong>Customer Details:</strong>
-          <br />
-          <strong>Name:</strong> {customer.name}
-          <br />
-          <strong>Address:</strong> {customer.address}
-          <br />
-          <strong>PAN:</strong> {customer.pan}
-          <br />
-          <strong>GSTIN:</strong> {customer.gstin}
-          <br />
-          <strong>Place of Supply:</strong> {customer.placeOfSupply}
-          <br />
-          <strong>Vehicle Registration No.:</strong> {customer?.vrno}
-          <br />
-          <strong>Unit Model:</strong> {customer?.unitmodel}
-          <br />
-          <strong>Hour Meter:</strong> {customer?.hourmeter}
-        </div>
+  <div className="customer-left">
+    <strong>Customer Details:</strong>
+    <br />
+    <strong>Name:</strong> {customer.name}
+    <br />
+    <strong>Address:</strong> {customer.address}
+    <br />
+    <strong>PAN:</strong> {customer.pan}
+    <br />
+    <strong>GSTIN:</strong> {customer.gstin}
+    <br />
+    <strong>Place of Supply:</strong> {customer.placeOfSupply}
+  </div>
+
+  <div className="vertical-line"></div>
+
+  <div className="customer-right">
+    <strong>Vehicle Registration No.:</strong> {customer?.vehicleRegistrationNo}
+    <br />
+    <strong>Unit Model:</strong> {customer?.unitModel}
+    <br />
+    <strong>Hour Meter:</strong> {customer?.hourMeter}
+  </div>
+</div>
 
         {/* Payment Type Section */}
         <div className="payment-type-section">
