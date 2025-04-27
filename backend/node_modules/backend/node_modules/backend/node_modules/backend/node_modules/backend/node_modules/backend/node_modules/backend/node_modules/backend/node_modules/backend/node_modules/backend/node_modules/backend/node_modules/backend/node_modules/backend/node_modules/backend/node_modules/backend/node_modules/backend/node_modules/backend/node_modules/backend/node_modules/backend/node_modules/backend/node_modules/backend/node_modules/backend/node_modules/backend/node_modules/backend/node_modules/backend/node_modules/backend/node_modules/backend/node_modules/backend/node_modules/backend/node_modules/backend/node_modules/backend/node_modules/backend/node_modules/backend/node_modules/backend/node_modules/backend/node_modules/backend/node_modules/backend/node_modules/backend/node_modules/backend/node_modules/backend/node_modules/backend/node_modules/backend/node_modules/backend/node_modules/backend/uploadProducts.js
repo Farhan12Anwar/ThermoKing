@@ -11,9 +11,9 @@ const products = xlsx.utils.sheet_to_json(worksheet);
 async function postProduct(product) {
   const newProduct = {
     partNumber: product["Part/Serial Number"] || "",
-    description: product["Description/HSN Code"] || "", // corrected mapping
+    description: product["Description/HSN Code"] || "", 
     originalPrice: Number(product["Unit Price (Rs.)"]) || 0,
-    gst: 15,
+    gst: 18,
     stock: Number(product["Stock (Qty)"]) || 0,
   };
 

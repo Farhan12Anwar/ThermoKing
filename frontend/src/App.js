@@ -11,8 +11,10 @@ const App = () => {
     description: "",
     originalPrice: "",
     gst: "",
+    margin: "", // 🛠 add margin
     stock: "",
   });
+
   const [search, setSearch] = useState("");
   const [editForm, setEditForm] = useState(null);
   const [invoiceItems, setInvoiceItems] = useState([]);
@@ -32,13 +34,16 @@ const App = () => {
       const newInvoiceNumber = `MH-SO-${Date.now()}`;
       setInvoiceNumber(newInvoiceNumber);
     }
+  
+    fetchProducts(); // 👈 call fetchProducts here too on mount
   }, [invoiceItems]);
+  
   const fetchProducts = () => {
     fetch(`http://localhost:5000/products?search=${search}`)
       .then((res) => res.json())
-      .then((data) => setProducts(data));
+      .then((data) => setProducts(data))
+      .catch((error) => console.error("Failed to fetch products:", error));
   };
-
   
   useEffect(() => {
     fetchProducts();
@@ -56,28 +61,53 @@ const App = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+  
+    if (!form) {
+      console.error("Form is empty or null!");
+      return;
+    }
+  
     const newProduct = {
-      ...form,
-      originalPrice: Number(form.originalPrice),
-      gst: Number(form.gst),
-      stock: Number(form.stock),
+      partNumber: form.partNumber || "",
+      description: form.description || "",
+      originalPrice: Number(form.originalPrice ?? 0),
+      gst: Number(form.gst ?? 0),
+      margin: Number(form.margin ?? 0),
+      stock: Number(form.stock ?? 0),
     };
-    const res = await fetch("http://localhost:5000/products", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProduct),
-    });
-    const saved = await res.json();
-    setProducts([...products, saved]);
-    setForm({
-      partNumber: "",
-      description: "",
-      originalPrice: "",
-      gst: "",
-      stock: "",
-    });
+  
+    try {
+      const response = await fetch("http://localhost:5000/products", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(newProduct),
+      });
+  
+      if (!response.ok) {
+        throw new Error("Failed to save product to database");
+      }
+  
+      const savedProduct = await response.json(); // Get the saved product returned from backend
+  
+      setProducts([...products, savedProduct]); // Update your local products list
+      setForm({
+        partNumber: "",
+        description: "",
+        originalPrice: "",
+        gst: "",
+        margin: "",
+        stock: "",
+      });
+  
+      console.log("Product saved successfully ✅");
+    } catch (error) {
+      console.error("Error saving product:", error);
+      alert("Failed to save product!");
+    }
   };
-
+  
   const handleDelete = async (id) => {
     await fetch(`http://localhost:5000/products/${id}`, { method: "DELETE" });
     setProducts(products.filter((p) => p._id !== id));
@@ -89,29 +119,46 @@ const App = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const updated = {
-      ...editForm,
-      originalPrice: Number(editForm.originalPrice),
-      gst: Number(editForm.gst),
-      stock: Number(editForm.stock),
-    };
-    const res = await fetch(`http://localhost:5000/products/${editForm._id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updated),
-    });
-    const result = await res.json();
-    setProducts(products.map((p) => (p._id === result._id ? result : p)));
-    setEditForm(null);
+    try {
+      await fetch(`/api/products/${editForm._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(editForm),
+      });
+
+      // 🔥 After successful update, update your local products state
+      setProducts((prevProducts) =>
+        prevProducts.map((product) =>
+          product._id === editForm._id ? { ...editForm } : product
+        )
+      );
+
+      setEditForm(null); // exit edit mode
+    } catch (error) {
+      console.error("Error updating product:", error);
+    }
   };
 
   const addToInvoice = (product) => {
+    if (!product) {
+      console.error("Product is null or undefined!");
+      return;
+    }
+
     if (product.stock <= 0) {
       alert("Out of stock!");
       return;
     }
 
-    // Check if already added
+    const marginPercent = Number(product?.margin ?? 0);
+    const gstPercent = Number(product?.gst ?? 0);
+    const originalPrice = Number(product?.originalPrice ?? 0);
+
+    const unitPrice = originalPrice * (1 + marginPercent / 100);
+    const priceWithGST = unitPrice * (1 + gstPercent / 100);
+
     const existingItemIndex = invoiceItems.findIndex(
       (item) => item._id === product._id
     );
@@ -120,20 +167,25 @@ const App = () => {
     if (existingItemIndex > -1) {
       updatedItems = [...invoiceItems];
       updatedItems[existingItemIndex].quantity += 1;
+      updatedItems[existingItemIndex].totalPrice = Number(
+        updatedItems[existingItemIndex].quantity *
+          updatedItems[existingItemIndex].priceWithGST
+      );
     } else {
       updatedItems = [
         ...invoiceItems,
         {
           ...product,
           quantity: 1,
-          priceWithGST: product.originalPrice * (1 + Number(product.gst) / 100),
+          unitPrice: Number(unitPrice.toFixed(2)),
+          priceWithGST: Number(priceWithGST.toFixed(2)),
+          totalPrice: Number(priceWithGST.toFixed(2)),
         },
       ];
     }
 
     setInvoiceItems(updatedItems);
 
-    // Decrease stock in products list
     const updatedProducts = products.map((p) =>
       p._id === product._id ? { ...p, stock: p.stock - 1 } : p
     );
@@ -290,8 +342,6 @@ const App = () => {
 
   const totalPages = Math.ceil(products.length / productsPerPage);
 
-
-
   return (
     <div>
       <div className="container">
@@ -308,18 +358,23 @@ const App = () => {
             />
           </div>
           <form onSubmit={handleSubmit} className="form">
-            {["partNumber", "description", "originalPrice", "gst", "stock"].map(
-              (field) => (
-                <input
-                  key={field}
-                  name={field}
-                  value={form[field]}
-                  onChange={handleChange}
-                  placeholder={field}
-                  required
-                />
-              )
-            )}
+            {[
+              "partNumber",
+              "description",
+              "originalPrice",
+              "gst",
+              "margin",
+              "stock",
+            ].map((field) => (
+              <input
+                key={field}
+                name={field}
+                value={form[field]}
+                onChange={handleChange}
+                placeholder={field}
+                required
+              />
+            ))}
             <button type="submit">Add Product</button>
           </form>
 
@@ -422,15 +477,28 @@ const App = () => {
                       "description",
                       "originalPrice",
                       "gst",
+                      "margin",
                       "stock",
                     ].map((field) => (
-                      <input
-                        key={field}
-                        name={field}
-                        value={editForm[field]}
-                        onChange={handleEditChange}
-                        required
-                      />
+                      <div key={field} className="input-group">
+                        <label htmlFor={field}>{field}</label>
+                        <input
+                          id={field}
+                          name={field}
+                          type={
+                            field === "originalPrice" ||
+                            field === "gst" ||
+                            field === "margin" ||
+                            field === "stock"
+                              ? "number"
+                              : "text"
+                          }
+                          value={editForm[field] || ""}
+                          onChange={handleEditChange}
+                          placeholder={`Enter ${field}`}
+                          required
+                        />
+                      </div>
                     ))}
                     <button type="submit">Save</button>
                     <button type="button" onClick={() => setEditForm(null)}>
@@ -444,13 +512,22 @@ const App = () => {
                       {product.partNumber})
                     </p>
                     <p>
-                      Original: ₹{product.originalPrice} | With GST: ₹
-                      {(
-                        product.originalPrice *
-                        (1 + Number(product.gst) / 100)
-                      ).toFixed(2)}
+                      <p>
+                        Original: ₹{product.originalPrice} | Final Price: ₹
+                        {(
+                          Number(product.originalPrice) *
+                          (1 +
+                            ((Number(product.gst) || 0) +
+                              (Number(product.margin) || 0)) /
+                              100)
+                        ).toFixed(2)}
+                      </p>
                     </p>
-                    <p>GST: {product.gst}%</p>
+
+                    <p>
+                      GST: {product.gst}% | Margin: {product.margin}%
+                    </p>
+
                     <p>Stock: {product.stock}</p>
                     <div>
                       <button onClick={() => handleEdit(product)}>Edit</button>
