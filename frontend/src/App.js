@@ -39,6 +39,7 @@ const App = () => {
       .then((data) => setProducts(data));
   };
 
+  
   useEffect(() => {
     fetchProducts();
   }, [search]);
@@ -198,9 +199,9 @@ const App = () => {
       alert("Invoice content not available to print.");
       return;
     }
-  
+
     const printWindow = window.open("", "_blank", "width=800,height=900");
-  
+
     printWindow.document.write(`
       <html>
         <head>
@@ -226,24 +227,16 @@ const App = () => {
         </body>
       </html>
     `);
-  
+
     printWindow.document.close();
   };
-  
 
   const done = async () => {
     console.log("Sending Invoice Data:", {
       items: invoiceItems,
       invoiceNumber,
       customer,
-      paymentType,
-      amountPaid: paymentType === "partial" ? amountPaid : null,
     });
-
-    if (!paymentType) {
-      alert("Please select a payment type before saving.");
-      return;
-    }
 
     try {
       const response = await fetch("http://localhost:5000/invoice", {
@@ -253,8 +246,6 @@ const App = () => {
           items: invoiceItems,
           invoiceNumber,
           customer,
-          paymentType,
-          amountPaid: paymentType === "partial" ? amountPaid : null,
         }),
       });
 
@@ -287,39 +278,6 @@ const App = () => {
     }
   };
 
-  const [searchInvoiceNumber, setSearchInvoiceNumber] = useState("");
-  const [searchedInvoice, setSearchedInvoice] = useState(null);
-
-  const [editablePaymentType, setEditablePaymentType] = useState("");
-  const [editableAmountPaid, setEditableAmountPaid] = useState("");
-
-  const handleSearch = async () => {
-    if (!searchInvoiceNumber) return alert("Please enter an invoice number");
-
-    try {
-      const response = await fetch(
-        `http://localhost:5000/invoice/${searchInvoiceNumber}`
-      );
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error);
-        setSearchedInvoice(null);
-        return;
-      }
-
-      setSearchedInvoice(data);
-    } catch (error) {
-      console.error("Error fetching invoice:", error);
-      alert("Error fetching invoice.");
-    }
-  };
-
-  const cellStyle = {
-    border: "1px solid #000",
-    padding: "10px",
-  };
-
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 5;
 
@@ -332,47 +290,7 @@ const App = () => {
 
   const totalPages = Math.ceil(products.length / productsPerPage);
 
-  const handleUpdatePayment = async () => {
-    if (!searchedInvoice) return;
 
-    try {
-      const response = await fetch(
-        `http://localhost:5000/api/invoices/${searchedInvoice._id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            paymentType: editablePaymentType,
-            amountPaid:
-              editablePaymentType === "partial" ? editableAmountPaid : null,
-          }),
-        }
-      );
-
-      const updated = await response.json();
-      alert("Payment info updated!");
-      setSearchedInvoice(updated);
-    } catch (err) {
-      console.error("Error updating payment type:", err);
-      alert("Failed to update payment details.");
-    }
-  };
-
-  const calculateTotal = () => {
-    const totalWithoutServiceCharge = invoiceItems.reduce(
-      (total, item) => total + item.priceWithGST * item.quantity,
-      0
-    );
-
-    const totalServiceCharges = serviceCharges.reduce(
-      (total, charge) => total + charge.price,
-      0
-    );
-
-    return totalWithoutServiceCharge + totalServiceCharges;
-  };
 
   return (
     <div>
@@ -449,28 +367,25 @@ const App = () => {
                 </div>
 
                 <div>
-              <label>Service Charge Price (₹):</label>
-              <input
-                type="number"
-                value={serviceCharge.price}
-                onChange={(e) =>
-                  setServiceCharge((prev) => ({
-                    ...prev,
-                    price: Number(e.target.value),
-                  }))
-                }
-                placeholder="Enter service charge price"
-              />
-            </div>
-            
+                  <label>Service Charge Price (₹):</label>
+                  <input
+                    type="number"
+                    value={serviceCharge.price}
+                    onChange={(e) =>
+                      setServiceCharge((prev) => ({
+                        ...prev,
+                        price: Number(e.target.value),
+                      }))
+                    }
+                    placeholder="Enter service charge price"
+                  />
+                </div>
+
                 <button type="button" onClick={handleServiceChargeSubmit}>
                   Add Service Charge
                 </button>
               </form>
-              
             </div>
-
-            
           </form>
 
           {invoiceItems.length > 0 && (
@@ -490,9 +405,7 @@ const App = () => {
               <div>
                 <button onClick={generateInvoice}>Generate & Print</button>
 
-                <button onClick={done} disabled={!paymentType}>
-                  Done
-                </button>
+                <button onClick={done}>Done</button>
               </div>
             </div>
           )}
@@ -576,167 +489,6 @@ const App = () => {
             </button>
           </div>
         </div>
-      </div>
-      <div>
-        <h3>🔎 Search Invoice by Invoice Number</h3>
-        <input
-          type="text"
-          placeholder="Enter Invoice Number (e.g., MH-...)"
-          value={searchInvoiceNumber}
-          onChange={(e) => setSearchInvoiceNumber(e.target.value)}
-        />
-        <button onClick={handleSearch}>Search</button>
-
-        {searchedInvoice && (
-          <>
-            <div>
-              <h4>Payment Details</h4>
-              <div>
-                {["cash", "credit", "partial"].map((type) => (
-                  <label key={type}>
-                    <input
-                      type="radio"
-                      name="editPaymentType"
-                      value={type}
-                      checked={editablePaymentType === type}
-                      onChange={(e) => setEditablePaymentType(e.target.value)}
-                    />
-                    {type.charAt(0).toUpperCase() + type.slice(1)}
-                  </label>
-                ))}
-              </div>
-
-              {editablePaymentType === "partial" && (
-                <div>
-                  <label>Amount Paid:</label>
-                  <input
-                    type="number"
-                    value={editableAmountPaid}
-                    onChange={(e) => setEditableAmountPaid(e.target.value)}
-                    placeholder="Enter amount paid"
-                  />
-                </div>
-              )}
-
-              <button onClick={() => handleUpdatePayment()}>
-                Save Payment Changes
-              </button>
-            </div>
-
-            <div>
-              <h2>TAX INVOICE</h2>
-              <p>
-                GSTIN: <strong>36 cispm5742f1zu</strong>
-              </p>
-              <p>
-                Invoice No.: <strong>{searchedInvoice.invoiceNumber}</strong>
-              </p>
-
-              <div>
-                <div>
-                  <strong>Customer Details:</strong>
-                  <br />
-                  <strong>Name:</strong> {searchedInvoice.customer.name}
-                  <br />
-                  <strong>Address:</strong> {searchedInvoice.customer.address}
-                  <br />
-                  <strong>PAN:</strong> {searchedInvoice.customer.pan}
-                  <br />
-                  <strong>GSTIN:</strong> {searchedInvoice.customer.gstin}
-                  <br />
-                  <strong>Place of Supply:</strong>
-                  {searchedInvoice.customer.placeOfSupply}
-                  <br />
-                  <strong>vrno:</strong> {searchedInvoice.customer.vrno}
-                  <br /> <br />
-                  <strong>unitModel:</strong> {searchedInvoice.customer.name}
-                  <br /> <br />
-                  <strong>hourMeter:</strong> {searchedInvoice.customer.name}
-                  <br />
-                </div>
-
-                <div>
-                  <h4>Invoice Items</h4>
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                        <th>Price</th>
-                        <th>GST</th>
-                        <th>Total</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {invoiceItems.map((item, index) => (
-                        <tr key={index}>
-                          <td>{item.description}</td>
-                          <td>{item.quantity}</td>
-                          <td>₹{item.originalPrice}</td>
-                          <td>{item.gst}%</td>
-                          <td>₹{item.priceWithGST * item.quantity}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div>
-                  <strong>Total Amount: ₹{calculateTotal().toFixed(2)}</strong>
-                </div>
-                <div>
-                  <h4>Payment Details</h4>
-                  <div>
-                    {["cash", "credit", "partial"].map((type) => (
-                      <label key={type}>
-                        <input
-                          type="radio"
-                          name="editPaymentType"
-                          value={type}
-                          checked={editablePaymentType === type}
-                          onChange={(e) =>
-                            setEditablePaymentType(e.target.value)
-                          }
-                        />
-                        {type.charAt(0).toUpperCase() + type.slice(1)}
-                      </label>
-                    ))}
-                  </div>
-
-                  {editablePaymentType === "partial" && (
-                    <div>
-                      <label>Amount Paid:</label>
-                      <input
-                        type="number"
-                        value={editableAmountPaid}
-                        onChange={(e) => setEditableAmountPaid(e.target.value)}
-                        placeholder="Enter amount paid"
-                      />
-                    </div>
-                  )}
-
-                  <button onClick={() => handleUpdatePayment()}>
-                    Save Payment Changes
-                  </button>
-
-                  {searchedInvoice && (
-                    <div>
-                      <p>
-                        <strong>Amount Paid:</strong> ₹
-                        {searchedInvoice.amountPaid.toFixed(2)}
-                      </p>
-                      <p>
-                        <strong>Due Amount:</strong>{" "}
-                        {searchedInvoice.dueAmount > 0
-                          ? `₹${searchedInvoice.dueAmount.toFixed(2)}`
-                          : "No Due Amount"}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </>
-        )}
       </div>
     </div>
   );

@@ -1,0 +1,19 @@
+[
+  {
+    "items": [
+      {
+        "_id": "680098c88a3d083249de868d",
+        "partNumber": "3333",
+        "description": "three",
+        "originalPrice": 1299,
+        "gst": 18,
+        "stock": 28,
+        "__v": 0,
+        "priceWithGST": 1532.82,
+        "quantity": 1
+      }
+    ],
+    "total": 1532.82,
+    "date": "2025-04-17T06:56:52.725Z"
+  }
+]

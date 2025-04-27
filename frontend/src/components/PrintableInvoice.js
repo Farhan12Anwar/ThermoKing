@@ -40,124 +40,132 @@ const PrintableInvoice = React.forwardRef(
         <style>
           {`
     @media print {
-  .header-and-customer {
-    display: flex;
-    flex-direction: row;
-    margin-top: 10px;
-    border: none;
-    justify-content: center;
-  }
+      .invoice-container {
+        padding: 20px 20px 20px 10px;
+        margin: 0 auto;
+        max-width: 800px;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 13px;
+        color: #000;
+        background-color: #fff;
+        page-break-before: always; /* Ensure page break before printing */
+      }
 
-  .invoice-title {
-    text-align: center;
-    margin-bottom: 0.5rem;
-    font-size: 18px;
-    font-weight: bold;
-}
+      .invoice-title {
+        text-align: center;
+        margin-bottom: 0.3rem;
+        font-size: 16px;
+        font-weight: bold;
+      }
 
-.gstin-info {
-    text-align: center;
-    margin-top: 0;
-    font-size: 12px;
-}
+      .gstin-info,
+      .invoice-number {
+        text-align: center;
+        font-size: 11px;
+      }
 
-.invoice-number {
-    text-align: center;
-    font-size: 14px;
-    margin-top: 0.5rem;
-}
+      .header-section {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px; /* Ensure there's spacing between sections */
+      }
 
-  .header-section {
-    flex: 2;
-    display: flex;
-    align-items: center;
-  }
+      .company-logo img {
+        max-width: 150px !important; /* Reduced size */
+        height: auto !important;
+      }
 
-  .company-logo img {
-    max-width: 150px !important;
-    height: auto !important;
-  }
+      .company-info {
+        text-align: right;
+        padding-left: 20px;
+      }
 
-  .company-info {
-    line-height: 1.4;
-     text-align: right;
-     padding-left:130px;
-  }
+      .customer-details {
+        display: flex;
+        margin-top: 1rem;
+        font-size: 11px;
+        border-top: 1px solid #000;
+        border-bottom: 1px solid #000;
+      }
 
-  .vertical-divider {
-    width: 1px;
-    background-color: black;
-    height: auto;
-    margin: 0 15px;
-  }
+      .customer-left,
+      .customer-right {
+        width: 48%;
+        padding: 8px;
+      }
 
-  .customer-details {
-    flex: 2;
-    display: flex;
-    flex-direction: row; /* Change to row instead of column */
-    border: 1px solid black;
-    font-size: 12px;
-  }
+      .customer-left {
+        padding-right: 8px;
+        border-right: 1px solid black;
+      }
 
-  .total-values {
-  text-align: right;
-    border-top: 1px solid black;
-    padding-top: 0.5rem;
-    font-weight: bold;
-    font-size: 15px;
-}
+      .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        border: 1px solid #000;
+        font-size: 11px;
+        padding:20px;
+      }
 
-  .customer-left,
-  .customer-right {
-    width: 48%;
-    padding : 10px;
-  }
+      .items-table th,
+      .items-table td {
+        padding: 4px 6px;
+        text-align: left;
+        border: 1px solid #000;
+        vertical-align: middle;
+        white-space: nowrap;
+      }
 
-  .customer-left {
-    padding-right: 10px;
-    border-right: 1px solid black;
-  }
+      .items-table th {
+        background-color: #f0f0f0;
+        font-weight: bold;
+        text-align: center;
+        align-items: center;
+      }
 
-  .customer-right {
-    padding-left: 10px;
-    margin-left: auto; /* This pushes it to the right */
-  }
+      .service-charges-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        font-size: 11px;
+        align-items: center;
+      }
 
-  .customer-left p,
-  .customer-right p {
-    margin: 4px 0;
-  }
+      .service-charges-table th,
+      .service-charges-table td {
+        padding: 4px 8px;
+        text-align: center;
+        border: 1px solid #000;
+      }
 
-  .total-section {
-    margin-top: 1.5rem;
-    display: flex
-;
-    justify-content: flex-end;
-}
+      .total-section {
+        margin-top: 10px;
+        display: flex;
+        justify-content: flex-end;
+      }
 
-  .horizontal-divider {
-    width: 100%;
-    height: 1px;
-    background-color: black;
-    margin: 10px 0;
-  }
-    th {
-          width:100%;
+      .total-values {
+        border: 1px solid black;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: bold;
+        width: 200px;
+        text-align: right;
+        background-color: #f9f9f9;
+      }
+
+      body {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        margin: 0;
+        font-family: 'Times New Roman', Times, serif;
+      }
     }
-
-body {
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
-  margin: 0;
-  font-family: 'Times New Roman', Times, serif;
-}
-
-}
-
   `}
         </style>
 
-        <h2 className="invoice-title">TAX INVOICE</h2>
+        <h2 className="invoice-title">GST INVOICE</h2>
         <p className="gstin-info">
           GSTIN: <strong>36cispm5742f1zu</strong>
         </p>
@@ -175,7 +183,11 @@ body {
 
           <div className="company-info">
             <strong className="company-name">
-              Telangana Transport Refrigeration & Air Conditioning Services
+              Telangana Refrigeration & Air Conditioning Services
+            </strong>
+            <br />
+            <strong className="company-name">
+              ThermoKing Authorized Service Center
             </strong>
             <br />
             Plot No.2-24/2, Gagilapur Village, Dundigal
@@ -184,10 +196,10 @@ body {
             <br />
             <strong>Invoice Date:</strong> {date}
             <br />
-            <strong>Invoice Type:</strong> Tax Invoice
-            <p>
+            <strong>Invoice Type:</strong> GST Invoice
+            {/* <p>
               <strong>Payment Type:</strong> {paymentType}
-            </p>
+            </p> */}
             {paymentType === "Partial" && (
               <p>
                 <strong>Amount Paid:</strong> ₹{amountPaid}
@@ -221,43 +233,6 @@ body {
             <br />
             <strong>Hour Meter:</strong> {customer?.hourMeter}
           </div>
-        </div>
-
-        {/* Payment Type Section */}
-        <div className="payment-type-section">
-          <h4>Select Payment Type:</h4>
-          <div className="payment-options">
-            {["cash", "credit", "partial"].map((type) => (
-              <label
-                key={type}
-                className={`payment-option ${
-                  paymentType === type ? "selected" : ""
-                }`}
-              >
-                <input
-                  type="radio"
-                  name="paymentType"
-                  value={type}
-                  checked={paymentType === type}
-                  onChange={(e) => setPaymentType(e.target.value)}
-                  style={{ display: "none" }}
-                />
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </label>
-            ))}
-          </div>
-
-          {paymentType === "partial" && (
-            <div className="amount-paid-input">
-              <label>Amount Paid:</label>
-              <input
-                type="number"
-                value={amountPaid}
-                onChange={(e) => setAmountPaid(e.target.value)}
-                placeholder="Enter amount paid"
-              />
-            </div>
-          )}
         </div>
 
         {/* Items Table */}
@@ -319,7 +294,10 @@ body {
             >
               <thead>
                 <tr>
-                  <th style={{ border: "1px solid #000", padding: "5px" }}>
+                  <th
+                    className="desc"
+                    style={{ border: "1px solid #000", padding: "5px" }}
+                  >
                     Description
                   </th>
                   <th style={{ border: "1px solid #000", padding: "5px" }}>
